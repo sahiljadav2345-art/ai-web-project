@@ -5,7 +5,7 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // Get the Gemini model
-const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
+const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
 const retryWithBackoff = async (fn, maxRetries = 3) => {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
