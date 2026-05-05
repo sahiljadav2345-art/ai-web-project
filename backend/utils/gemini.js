@@ -4,8 +4,20 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// Get the Gemini model (gemini-2.0-flash is the current free tier model)
-const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+// Get the Gemini model
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+const retryWithBackoff = async (fn, maxRetries = 3) => {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      if (attempt === maxRetries || !err.message?.includes("503")) throw err;
+      const delay = Math.min(1000 * Math.pow(2, attempt - 1), 10000);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+};
 
 /**
  * Generate interview questions based on resume text
@@ -24,12 +36,14 @@ Return ONLY a JSON array of question strings, no extra text. Example:
 ["Question 1?", "Question 2?", "Question 3?"]
 `;
 
-  const result = await model.generateContent(prompt);
-  const text = result.response.text().trim();
+  return retryWithBackoff(async () => {
+    const result = await model.generateContent(prompt);
+    const text = result.response.text().trim();
 
-  // Clean up response and parse JSON
-  const cleaned = text.replace(/```json|```/g, "").trim();
-  return JSON.parse(cleaned);
+    // Clean up response and parse JSON
+    const cleaned = text.replace(/```json|```/g, "").trim();
+    return JSON.parse(cleaned);
+  });
 };
 
 /**
@@ -53,8 +67,10 @@ Provide concise feedback (3-5 sentences) covering:
 Keep the tone encouraging and constructive.
 `;
 
-  const result = await model.generateContent(prompt);
-  return result.response.text().trim();
+  return retryWithBackoff(async () => {
+    const result = await model.generateContent(prompt);
+    return result.response.text().trim();
+  });
 };
 
 module.exports = { generateQuestions, generateFeedback };
