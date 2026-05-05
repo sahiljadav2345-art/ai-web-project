@@ -5,6 +5,18 @@ const { protect } = require("../middleware/auth");
 const User = require("../models/User");
 const Interview = require("../models/Interview");
 const { generateQuestions, generateFeedback } = require("../utils/gemini");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+
+// ─── GET /api/interview/test-models (Debug endpoint) ──────────────────────────
+router.get("/test-models", async (req, res) => {
+  try {
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    const models = await genAI.listModels();
+    res.json({ models: models.map(m => m.name) });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 // ─── POST /api/interview/start ────────────────────────────────────────────────
 // Analyze resume and generate interview questions
