@@ -2,10 +2,12 @@
 // Uses @google/generative-ai package to call Gemini API
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY, {
+  apiVersion: 'v1beta'
+});
 
 // Get the Gemini model
-const model = genAI.getGenerativeModel({ model: "gemini-3.1-flash-lite-preview", apiVersion: "v1beta" });
+const model = genAI.getGenerativeModel({ model: "gemini-3.1-flash-lite-preview" });
 
 const retryWithBackoff = async (fn, maxRetries = 3) => {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
