@@ -233,7 +233,20 @@ export default function AuthPage() {
             )}
 
             <button type="submit" className="btn btn-primary" disabled={loading || success}>
-              {loading ? <span className="spinner" /> : mode === "login" ? "Sign In" : "Create Account"}
+              {loading ? (
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  style={{ animation: "circularSpin 1s linear infinite" }}
+                >
+                  <circle cx="12" cy="12" r="10" strokeOpacity="0.3" />
+                  <path d="M12 2a10 10 0 0 1 10 10" strokeLinecap="round" />
+                </svg>
+              ) : mode === "login" ? "Sign In" : "Create Account"}
             </button>
           </form>
         </div>
