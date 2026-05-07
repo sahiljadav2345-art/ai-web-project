@@ -10,6 +10,7 @@ export default function AuthPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [success, setSuccess] = useState(false);
 
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -33,9 +34,16 @@ export default function AuthPage() {
 
       const { data } = await api.post(endpoint, payload);
 
+      // Show success animation
+      setSuccess(true);
+
       // Save user to context + localStorage
       login(data.user, data.token);
-      navigate("/interview");
+
+      // Redirect after animation completes
+      setTimeout(() => {
+        navigate("/interview");
+      }, 1200);
     } catch (err) {
       setError(err.response?.data?.message || "Something went wrong");
     } finally {
@@ -53,6 +61,45 @@ export default function AuthPage() {
         padding: "40px 20px",
       }}
     >
+      {/* Success overlay animation */}
+      {success && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(10, 15, 30, 0.9)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+            animation: "fadeIn 0.3s ease-out",
+            backdropFilter: "blur(4px)",
+          }}
+        >
+          <div style={{ textAlign: "center" }}>
+            {/* Checkmark SVG */}
+            <svg
+              width="80"
+              height="80"
+              viewBox="0 0 80 80"
+              fill="none"
+              stroke="var(--accent)"
+              strokeWidth="2"
+              style={{ animation: "checkmarkDraw 0.6s ease-out 0.2s both" }}
+            >
+              <circle cx="40" cy="40" r="36" />
+              <path d="M20 40 L35 55 L60 25" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <p style={{ color: "var(--accent)", fontSize: "1.1rem", marginTop: "20px", fontWeight: "500" }}>
+              {mode === "login" ? "Welcome back!" : "Account created!"}
+            </p>
+          </div>
+        </div>
+      )}
+
       <div style={{ width: "100%", maxWidth: "420px" }}>
         {/* Header */}
         <div style={{ textAlign: "center", marginBottom: "32px" }}>
@@ -185,7 +232,7 @@ export default function AuthPage() {
               </div>
             )}
 
-            <button type="submit" className="btn btn-primary" disabled={loading}>
+            <button type="submit" className="btn btn-primary" disabled={loading || success}>
               {loading ? <span className="spinner" /> : mode === "login" ? "Sign In" : "Create Account"}
             </button>
           </form>
