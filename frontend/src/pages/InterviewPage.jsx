@@ -160,8 +160,9 @@ function QuestionCard({ item, index, interviewId, onFeedbackReceived }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleGetFeedback = async () => {
-    if (!answer.trim()) return setError("Please provide an answer first");
+  const handleGetFeedback = async (answerText = answer) => {
+    if (!answerText.trim()) return;
+    if (feedback) return;
     setLoading(true);
     setError("");
 
@@ -170,7 +171,7 @@ function QuestionCard({ item, index, interviewId, onFeedbackReceived }) {
         interviewId,
         questionId: item._id,
         question: item.question,
-        answer,
+        answer: answerText,
       });
       setFeedback(data.feedback);
       onFeedbackReceived();
@@ -178,6 +179,12 @@ function QuestionCard({ item, index, interviewId, onFeedbackReceived }) {
       setError(err.response?.data?.message || "Failed to get feedback");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const triggerFeedback = (answerText) => {
+    if (answerText.trim() && !feedback) {
+      handleGetFeedback(answerText);
     }
   };
 
@@ -196,48 +203,33 @@ function QuestionCard({ item, index, interviewId, onFeedbackReceived }) {
 
       <hr className="divider" />
 
-      {/* Voice + text answer */}
+      {/* Voice answer only */}
       <div style={{ marginBottom: "14px" }}>
-        <div style={{ display: "flex", gap: "10px", alignItems: "center", marginBottom: "10px" }}>
-          <label style={{ color: "var(--text-muted)", fontSize: "0.8rem", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-            Your Answer
-          </label>
-          <VoiceRecorder
-            onTranscript={(text) => setAnswer((prev) => (prev ? prev + " " + text : text))}
-          />
-        </div>
-
-        <textarea
-          value={answer}
-          onChange={(e) => setAnswer(e.target.value)}
-          placeholder="Type or use voice to record your answer..."
-          rows={4}
-          style={{
-            width: "100%",
-            background: "var(--bg-input)",
-            border: "1px solid var(--border)",
-            borderRadius: "8px",
-            padding: "12px",
-            color: "var(--text)",
-            fontFamily: "var(--font-body)",
-            fontSize: "0.92rem",
-            resize: "vertical",
-            outline: "none",
+        <label style={{ color: "var(--text-muted)", fontSize: "0.8rem", textTransform: "uppercase", letterSpacing: "0.5px", display: "block", marginBottom: "12px" }}>
+          Your Answer
+        </label>
+        <VoiceRecorder
+          onTranscript={(text) => {
+            const newAnswer = answer ? answer + " " + text : text;
+            setAnswer(newAnswer);
+            triggerFeedback(newAnswer);
           }}
         />
+        {answer && (
+          <div style={{ marginTop: "12px", padding: "12px", background: "var(--bg-input)", borderRadius: "8px", fontSize: "0.9rem", lineHeight: "1.5", color: "var(--text)" }}>
+            <p style={{ color: "var(--text-muted)", fontSize: "0.75rem", textTransform: "uppercase", marginBottom: "6px" }}>Transcribed:</p>
+            {answer}
+          </div>
+        )}
       </div>
 
       {error && <div className="alert alert-error" style={{ marginBottom: "12px" }}>{error}</div>}
 
-      {/* Get Feedback button */}
-      {!feedback && (
-        <button
-          className="btn btn-secondary"
-          onClick={handleGetFeedback}
-          disabled={loading || !answer.trim()}
-        >
-          {loading ? <><span className="spinner" /> Getting feedback...</> : "✨ Get AI Feedback"}
-        </button>
+      {loading && (
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--text-muted)", fontSize: "0.85rem" }}>
+          <span className="spinner" style={{ width: "16px", height: "16px" }} />
+          Getting AI feedback...
+        </div>
       )}
 
       {/* AI Feedback section */}
