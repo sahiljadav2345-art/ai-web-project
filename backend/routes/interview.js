@@ -1,4 +1,4 @@
-// ─── Interview Routes ─────────────────────────────────────────────────────────
+// ─── Interview Route
 const express = require("express");
 const router = express.Router();
 const { protect } = require("../middleware/auth");
@@ -7,7 +7,7 @@ const Interview = require("../models/Interview");
 const { generateQuestions, generateFeedback } = require("../utils/gemini");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-// ─── GET /api/interview/test-models (Debug endpoint) ──────────────────────────
+// ───  (Debug endpoint) 
 router.get("/test-models", async (req, res) => {
   try {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -18,7 +18,7 @@ router.get("/test-models", async (req, res) => {
   }
 });
 
-// ─── POST /api/interview/start ────────────────────────────────────────────────
+// ─── start 
 // Analyze resume and generate interview questions
 router.post("/start", protect, async (req, res) => {
   try {
@@ -31,7 +31,7 @@ router.post("/start", protect, async (req, res) => {
     // Generate questions using Gemini AI
     const questionTexts = await generateQuestions(user.resumeText);
 
-    // Create a new interview session in DB (answers/feedback added later)
+    // Create a new interview session in DB 
     const interview = await Interview.create({
       user: user._id,
       questions: questionTexts.map((q) => ({ question: q })),
@@ -48,7 +48,7 @@ router.post("/start", protect, async (req, res) => {
   }
 });
 
-// ─── POST /api/interview/feedback ────────────────────────────────────────────
+
 // Get AI feedback for a single answer
 router.post("/feedback", protect, async (req, res) => {
   try {
